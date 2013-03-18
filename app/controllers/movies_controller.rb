@@ -3,16 +3,16 @@ class MoviesController < ApplicationController
   def show
     id = params[:id] # retrieve movie ID from URI route
     @movie = Movie.find(id) # look up movie by unique ID
-    # will render app/views/movies/show.<extension> by default
+                            # will render app/views/movies/show.<extension> by default
   end
 
   def index
     sort = params[:sort] || session[:sort]
     case sort
-    when 'title'
-      ordering,@title_header = {:order => :title}, 'hilite'
-    when 'release_date'
-      ordering,@date_header = {:order => :release_date}, 'hilite'
+      when 'title'
+        ordering,@title_header = {:order => :title}, 'hilite'
+      when 'release_date'
+        ordering,@date_header = {:order => :release_date}, 'hilite'
     end
     @all_ratings = Movie.all_ratings
     @selected_ratings = params[:ratings] || session[:ratings] || {}
@@ -31,7 +31,7 @@ class MoviesController < ApplicationController
   end
 
   def new
-    # default: render 'new' template
+    @movie = Movie.new(params[:movie])
   end
 
   def create
@@ -56,6 +56,16 @@ class MoviesController < ApplicationController
     @movie.destroy
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
+  end
+
+  def find_similar_movies
+    movie = Movie.find(params[:id])
+    if movie.director.nil? or movie.director.empty?
+      flash[:warning] = "'#{movie.title}' has no director info"
+      redirect_to movies_path
+    else
+      @movies = Movie.find_all_by_director(movie.director)
+    end
   end
 
 end
